@@ -1,0 +1,17 @@
+# - Try to find latest Cplex on Linux, Mac, Windows (32 and 64 bits)
+
+set(CPLEX_LATEST_VERSION "12")
+set(CPLEX_SUPPORTED_VERSIONS "11;12")
+
+# See if the user's define version is available, else use latest version
+if(CPLEX_FIND_VERSION)
+	if("${CPLEX_SUPPORTED_VERSIONS}" MATCHES "${CPLEX_CURRENT_VERSION}")
+		set(CPLEX_CURRENT_VERSION ${CPLEX_FIND_VERSION})
+	else("${CPLEX_SUPPORTED_VERSIONS}" MATCHES "${CPLEX_CURRENT_VERSION}")
+		message("-- CPLEX Version ${CPLEX_FIND_VERSION}: Not found")
+	endif("${CPLEX_SUPPORTED_VERSIONS}" MATCHES "${CPLEX_CURRENT_VERSION}")
+else(CPLEX_FIND_VERSION)
+	set(CPLEX_CURRENT_VERSION ${CPLEX_LATEST_VERSION})	
+endif(CPLEX_FIND_VERSION)
+
+find_package(CPLEX${CPLEX_CURRENT_VERSION})

@@ -1,0 +1,69 @@
+include(Package)
+
+macro(try_build_bapcod_application_package)
+
+  # Install the binary
+  install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION "${PROJECT_OUTPUT_NAME}/bin/"
+    ARCHIVE DESTINATION "${PROJECT_OUTPUT_NAME}/bin"
+    COMPONENT bin)
+
+  # Install the data files
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data
+    DESTINATION "${PROJECT_OUTPUT_NAME}/"
+    COMPONENT data)
+
+  # Install the data files
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/config
+    DESTINATION "${PROJECT_OUTPUT_NAME}/"
+    COMPONENT config)
+  
+  # Set all the components to be installed and packed
+  set(COMPONENTS_NAMES bin data config)
+
+  set(CPACK_PACKAGE_NAME "${PROJECT_OUTPUT_NAME}")
+
+  
+  # All those lines set the name of the package
+  if (PACKAGE_DEV_INCLUDE AND PACKAGE_UTIL_INCLUDE)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Full-${CMAKE_SYSTEM_NAME}")
+    if (NOT ("${CMAKE_BUILD_TYPE}" STREQUAL ""))
+      set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Full-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_TYPE}")
+    endif()
+  elseif(PACKAGE_DEV_INCLUDE AND NOT PACKAGE_UTIL_INCLUDE)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Dev-${CMAKE_SYSTEM_NAME}")
+    if (NOT ("${CMAKE_BUILD_TYPE}" STREQUAL ""))
+      set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Dev-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_TYPE}")
+    endif()
+  elseif(NOT PACKAGE_DEV_INCLUDE AND PACKAGE_UTIL_INCLUDE)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Utils-${CMAKE_SYSTEM_NAME}")
+    if (NOT ("${CMAKE_BUILD_TYPE}" STREQUAL ""))
+      set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Utils-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_TYPE}")
+    endif()
+  endif()
+
+  if (APPLE)
+    set(CPACK_GENERATOR "DragNDrop")
+  endif()
+
+  set(CPACK_PACKAGE_DEFAULT_LOCATION "${CPACK_PACKAGE_NAME}")
+
+  if(UNIX AND NOT APPLE)
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt")
+    set(CPACK_GENERATOR "DEB;STGZ;TGZ;RPM")
+  endif()
+
+  if(WIN32)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_DEFAULT_LOCATION}")
+    set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
+    set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY}")
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    set(BAPCOD_INCLUDE_PATH "$ENV{ProgramFiles}\\${CPACK_NSIS_PACKAGE_NAME}\\${CPACK_PACKAGE_NAME}\\include" "$ENV{ProgramFiles}\\${CPACK_NSIS_PACKAGE_NAME}\\${CPACK_PACKAGE_NAME}\\lib")
+    set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "Push \\\"PATH\\\" Push \\\"A\\\" Push \\\"HKLM\\\" Push \\\"${BAPCOD_INCLUDE_PATH}\\\" Call EnvVarUpdate Pop \\\"ResultVar\\\"")
+  endif()
+
+  set(CPACK_SOURCE_GENERATOR "TGZ" "ZIP")
+
+  try_build_package()
+
+endmacro(try_build_bapcod_application_package)
