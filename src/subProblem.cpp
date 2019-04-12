@@ -3,7 +3,7 @@
 #include "bcUsefulHeadFil.hpp"
 #include <string>
 #include <sstream>
-
+#include <time.h>
 bool SpOracle::operator()(BcFormulation spPtr,
 	  double & objVal,
 	  double & primalBound,
@@ -14,29 +14,29 @@ bool SpOracle::operator()(BcFormulation spPtr,
 {
      SpData spData(spPtr, data.getN(), phaseOfStageApproach, data.getMinClusterSize(clusterType), data.getMaxClusterSize(clusterType));
 
-     SpHeuristicSolver heurSolver(spData);
-     SpSol* heurSpSol = heurSolver.solve();
      SpSol* spSol = NULL;
-
-     if(phaseOfStageApproach == 0)
+     if(phaseOfStageApproach == 1)
      {
-	  SpMipSolver mipSolver(spData);
-	  spSol = mipSolver.solve2(heurSpSol);
-
-	  //SpSol* linSol = mipSolver.solve2(heurSpSol);
-	  //std::cout << std::setprecision(10) << "cost nonlin:" << spSol->getCost() << " cost lin" << linSol->getCost() << std::endl;
-
-	  //if(std::abs(spSol->getCost() - linSol->getCost()) > 0.001)
-	  //{
-	    //   std::cerr << "erro lin nonlin\n"; 
-	      // exit(EXIT_FAILURE);
-	  //}
-	  delete heurSpSol;
+	  SpHeuristicSolver heurSolver(spData);
+	  spSol = heurSolver.solve();
+     }
+     else if(spData.maxClusterSize <= 4)
+     {
+	  SpEnumSolver enumSolver(spData);
+	  spSol = enumSolver.solve();
      }
      else
-	  spSol = heurSpSol;
+     {
+	  SpHeuristicSolver heurSolver(spData);
+	  SpSol* heurSpSol = heurSolver.solve();
 
+	  SpMipSolver mipSolver(spData);
+	  spSol = mipSolver.solve_linear(heurSpSol);
+	  delete heurSpSol;
+     }
 
+  //   clock_t t_end = clock();
+   //  std::cout << "time " << mip << " " << (double)(t_end - t_ini)/CLOCKS_PER_SEC << std::endl;
 
 //     std::cout << "heur ";
   //   heurSol->print();
@@ -81,7 +81,7 @@ bool SpOracle::operator()(BcFormulation spPtr,
      return true;
 }
 
-SpSol* SpMipSolver::solve(SpSol* incumbent)
+SpSol* SpMipSolver::solve_nonlinear(SpSol* incumbent)
 {
      IloEnv env;
      IloModel model(env);
@@ -166,7 +166,7 @@ SpSol* SpMipSolver::solve(SpSol* incumbent)
      return spSol;
 }
 
-SpSol* SpMipSolver::solve2(SpSol* incumbent)
+SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
 {
    int knap_cpt = spData.maxClusterSize;
 
@@ -256,7 +256,7 @@ SpSol* SpMipSolver::solve2(SpSol* incumbent)
    ////////////////////////////////////////////
 
    KS.setParam(IloCplex::Threads, 1);
-   //     KS.setParam(IloCplex::EpGap, 0.000001);
+   //     KS.setParam(IloCplex::EpGap, 0.0001);
    KS.setParam(IloCplex::EpGap, 0.0);
    KS.setOut(env.getNullStream());
    KS.setWarning(env.getNullStream());
@@ -377,10 +377,94 @@ SpSol* SpHeuristicSolver::ch2()
      return sol;
 }
 
-SpSol* SpHeuristicSolver::solve()
+SpSol* SpEnumSolver::solve()
 {
      SpSol* bestSol = NULL;
 
+     for(int i = 0; i < spData.getN(); i++)
+     {
+	  for(int j = i+1; j < spData.getN(); j++)
+	  {
+	       if(spData.minClusterSize <= 2
+			 && spData.maxClusterSize >= 2)
+	       {
+		    double cost2 = spData.vertexRedCosts[i] + spData.vertexRedCosts[j]
+			 + spData.edgeRedCosts[i][j];
+		    if(!bestSol || (cost2 < bestSol->getCost()))
+		    {
+			 SpSol* sol = new SpSol(spData);
+			 sol->addVertex(i);
+			 sol->addVertex(j);
+			 if(bestSol)
+			      delete bestSol;
+			 bestSol = sol;
+		    }
+	       }
+
+	       if(spData.minClusterSize <= 3
+			 && spData.maxClusterSize >= 3)
+	       {
+		    double cost2 = spData.vertexRedCosts[i] + spData.vertexRedCosts[j]
+			 + spData.edgeRedCosts[i][j];
+
+		    for(int k = j+1; k < spData.getN(); k++)
+		    {
+			 double cost3 = cost2 + spData.vertexRedCosts[k]
+			      + spData.edgeRedCosts[i][k] + spData.edgeRedCosts[j][k];
+			 if(!bestSol || (cost3 < bestSol->getCost()))
+			 {
+			      SpSol* sol = new SpSol(spData);
+			      sol->addVertex(i);
+			      sol->addVertex(j);
+			      sol->addVertex(k);
+			      if(bestSol)
+				   delete bestSol;
+			      bestSol = sol;
+			 }
+		    }
+	       }
+
+	       if(spData.minClusterSize <= 4
+			 && spData.maxClusterSize >= 4)
+	       {
+		    double cost2 = spData.vertexRedCosts[i] + spData.vertexRedCosts[j]
+			 + spData.edgeRedCosts[i][j];
+
+		    for(int k = j+1; k < spData.getN(); k++)
+		    {
+			 double cost3 = cost2 + spData.vertexRedCosts[k]
+			      + spData.edgeRedCosts[i][k] + spData.edgeRedCosts[j][k];
+
+			 for(int l = k+1; l < spData.getN(); l++)
+			 {
+			      double cost4 = cost3 + spData.vertexRedCosts[l]
+				   + spData.edgeRedCosts[i][l] + spData.edgeRedCosts[j][l]
+				   + spData.edgeRedCosts[k][l];
+
+			      if(!bestSol || (cost4 < bestSol->getCost()))
+			      {
+				   SpSol* sol = new SpSol(spData);
+				   sol->addVertex(i);
+				   sol->addVertex(j);
+				   sol->addVertex(k);
+				   sol->addVertex(l);
+				   if(bestSol)
+					delete bestSol;
+				   bestSol = sol;
+			      }
+			 }
+		    }
+	       }
+
+	  }
+     }
+
+     return bestSol;
+}
+
+SpSol* SpHeuristicSolver::solve()
+{
+     SpSol* bestSol = NULL;
      for(int iter = 0; iter <= spData.getN(); iter++)
      {
 	  SpSol* sol = NULL;
@@ -394,7 +478,8 @@ SpSol* SpHeuristicSolver::solve()
 
 	  if((iter == 0) || (sol->getCost() < bestSol->getCost()))
 	  {
-	       delete bestSol;
+	       if(bestSol)
+		    delete bestSol;
 	       bestSol = sol;
 	  }
 	  else

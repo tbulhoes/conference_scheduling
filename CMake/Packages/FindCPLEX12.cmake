@@ -46,23 +46,19 @@ if(NOT "${CPLEX_LIBRARY}" STREQUAL "CPLEX_LIBRARY-NOTFOUND")
 	   concert
            PATHS "/opt/ibm/ILOG/CPLEX_Studio128/concert/lib/x86-64_linux/static_pic/"
 	   PATHS "/opt/ilog/cplex/lib/x86-64_sles10_4.1/static_pic/")
-      find_library(LIBCLIQUE
-	   clique
-           PATHS "/home/teobaldo/felipe/quickc/")
       find_library(LIBCLIQUESEP
 	   CliqueSep
-           PATHS "/home/teobaldo/felipe/")
+           PATHS "/home/teobaldo/conference_scheduling/")
       find_library(LIBCVRPSEP
 	   CVRPSEP
-           PATHS "/home/teobaldo/felipe/")
+           PATHS "/home/teobaldo/conference_scheduling/")
       find_library(LIBRHECCSEP
 	   RheccSep
-           PATHS "/home/teobaldo/felipe/")
+           PATHS "/home/teobaldo/conference_scheduling/")
 	
     append_solver_libraries(${LIBILO})
     append_solver_libraries(${CPLEX_LIBRARY})
     append_solver_libraries(${LIBCONCERT})
-    append_solver_libraries(${LIBCLIQUE})
     append_solver_libraries(${LIBCLIQUESEP})
     append_solver_libraries(${LIBCVRPSEP})
     append_solver_libraries(${LIBRHECCSEP})
@@ -82,40 +78,8 @@ if(NOT "${CPLEX_INCLUDE_DIR}" STREQUAL "CPLEX_INCLUDE_DIR-NOTFOUND")
     ilconcert/iloenv.h
     PATHS "/opt/ibm/ILOG/CPLEX_Studio128/concert/include"
     PATHS "/opt/ilog/concert/include")
-  find_path(MY_CLIQUE_INCLUDE_1
-    adjlist_algorithm.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_2
-    degeneracy_algorithm.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_3
-    degeneracy_helper.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_4
-    hybrid_algorithm.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_5
-    LinkedList.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_6
-    MemoryManager.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_7
-    misc.h
-    PATHS "/home/teobaldo/felipe/quickc/")
-  find_path(MY_CLIQUE_INCLUDE_8
-    tomita_algorithm.h
-    PATHS "/home/teobaldo/felipe/quickc/")
   
   append_solver_include_dirs(${MY_CPLEX_INCLUDE_DIR})
   append_solver_include_dirs(${MY_CONCERT_INCLUDE_DIR})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_1})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_2})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_3})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_4})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_5})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_6})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_7})
-  append_solver_include_dirs(${MY_CLIQUE_INCLUDE_8})
 
 endif()                                   

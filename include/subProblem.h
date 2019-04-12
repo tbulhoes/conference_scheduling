@@ -100,8 +100,8 @@ class SpMipSolver
 	  SpMipSolver(SpData& spData): spData(spData) {}
 	  ~SpMipSolver(){}
 
-	  SpSol* solve(SpSol* incumbent);
-	  SpSol* solve2(SpSol* incumbent);
+	  SpSol* solve_nonlinear(SpSol* incumbent);
+	  SpSol* solve_linear(SpSol* incumbent);
 };
 
 class SpHeuristicSolver 
@@ -120,6 +120,19 @@ class SpHeuristicSolver
 
 	  static const double BUILD_EPS = 0.0001;
 };
+
+class SpEnumSolver 
+{
+     private:
+	  SpData& spData;
+
+     public:
+	  SpEnumSolver(SpData& spData): spData(spData) {}
+	  ~SpEnumSolver(){}
+
+	  SpSol* solve();
+};
+
 
 class SpLocalSearch 
 {

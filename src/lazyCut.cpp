@@ -85,6 +85,7 @@ int LazyCutSeparationRoutine::operator()(BcFormulation formPtr,
 
 	  cutList.push_back(lazyCut);
 	  cutCount++;
+	  std::cout << "lazy cut added" << std::endl;
      }
 
      return cutCount;
@@ -349,7 +350,7 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
 
 
      IloCplex checker(model);
-     checker.exportModel("modelcheck.lp");
+     //checker.exportModel("modelcheck.lp");
      try 
      {   
 	  checker.solve();
