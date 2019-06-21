@@ -63,6 +63,8 @@ Data::Data(const char* filePath)
 	exit(EXIT_FAILURE);
    }
 
+   std::cout << nbDays << std::endl;
+
    int totalNbSessions = 0;
    for(int dayId = 0; dayId < nbDays; dayId++)
    {
@@ -155,6 +157,38 @@ Data::Data(const char* filePath)
 	     checkerData.papers[paperId].addAuthor(authorId);
 	}
    }
+
+   fclose(f);
+   return;
+
+ /*  //restricoes de horario dos autores
+   int nbAuthorsCons;
+   if(fscanf(f, "%d", &nbAuthorsCons) != 1)
+   {
+	std::cerr << "Problem while reading instance" << std::endl;
+	exit(EXIT_FAILURE);
+   }
+   for(int i = 0; i < nbAuthorsCons; i++)
+   {
+	int authorId, nbPairs;
+	fscanf(f, "%d %d", &authorId, &nbPairs);
+	for(int j = 0; j < nbPairs; j++)
+	{
+	     int day, slot;
+	     fscanf(f, "%d %d", &day, &slot);
+
+	     for(int sessionId = 0; sessionId < checkerData.sessions.size(); sessionId++)
+	     {
+		  Session& session = checkerData.sessions[sessionId];
+		  if(session.getDayId() == day - 1 && session.getTimeSlot() == slot - 1)
+		  {
+		       std::cout << "sessao " << sessionId << " proibida para autor " << authorId << std::endl;
+		       checkerData.authors[authorId].addForbiddenSession(sessionId);
+		  }
+	     }
+	}
+   }*/
+ 
 
    fclose(f);
 }

@@ -166,7 +166,7 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
 	  }
      }
 
-     //each cluster is allocated
+     //each cluster is allocated and forbidden allocations
      for(int i = 0; i < clusters.size(); i++)
      {
 	  IloExpr sumX(env);
@@ -174,7 +174,27 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
 	  {
 	       if(checkerData.sessions[j].getSize() >= clusters[i].size())
 	       {
-		    sumX += x[i][j];
+		    //checando se algum autor nao pode ir para a sessao j
+		    bool clusterICanBeAtJ = true;
+		    for(int k = 0; k < clusters[i].size(); k++)
+		    {
+			 const Paper& paper = checkerData.papers[clusters[i][k]];
+			 const std::vector<int>& authorsIds = paper.getAuthorsIds();
+			 for(int l = 0; l < authorsIds.size(); l++)
+			 {
+			      const Author& author = checkerData.authors[authorsIds[l]];
+			      const std::vector<int>& forbidden = author.getForbiddenSessionsIds();
+			      if(std::find(forbidden.begin(), forbidden.end(), j) != forbidden.end())
+			      {
+				   clusterICanBeAtJ = false;
+			      }
+			 }
+		    }
+
+		    if(clusterICanBeAtJ)
+			 sumX += x[i][j];
+		    else
+			 model.add(x[i][j] == 0);
 	       }
 	  }
 
@@ -368,6 +388,32 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
      }
 
      bool feasible = checker.getCplexStatus() != IloCplex::Infeasible;
+
+     if(feasible)
+     {
+	  FILE* fSol = fopen("sol", "w");
+	  fprintf(fSol, "%d\n", (int)clusters.size());
+	  for(int i = 0; i < clusters.size(); i++)
+	  {
+	       for(int j = 0; j < checkerData.sessions.size(); j++)
+	       {
+		    if(checkerData.sessions[j].getSize() >= clusters[i].size())
+		    {
+			 if(checker.getValue(x[i][j]) > 0.9)
+			 {
+			      fprintf(fSol, "%d %d %d ", (int)clusters[i].size(), checkerData.sessions[j].getDayId(),
+					checkerData.sessions[j].getTimeSlot());
+			      for(int k = 0; k < clusters[i].size(); k++)
+			      {
+				   fprintf(fSol, "%d ", clusters[i][k]);
+			      }
+			      fprintf(fSol, "\n");
+			 }
+		    }
+	       }
+	  }
+	  fclose(fSol);
+     }
 
      env.end();
 

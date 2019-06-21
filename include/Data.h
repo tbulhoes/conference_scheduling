@@ -10,11 +10,12 @@ class Author
 {
      private:
 
-	  int id, nbPapers;
+	  int id, nbPapers, nbForbiddenSessions;
 	  std::vector<int> papersIds;
+	  std::vector<int> forbiddenSessionsIds;
 
      public:
-	  Author(int id): id(id), nbPapers(0) {}
+	  Author(int id): id(id), nbPapers(0), nbForbiddenSessions(0) {}
 
 	  void addPaper(int paperId) 
 	  {
@@ -22,11 +23,21 @@ class Author
 	       papersIds.push_back(paperId);
 	  }
 
+	  void addForbiddenSession(int sessionId) 
+	  {
+	       nbForbiddenSessions++;
+	       forbiddenSessionsIds.push_back(sessionId);
+	  }
+
 	  const std::vector<int>& getPapersIds() const
 	  {
 	       return papersIds;
 	  }
 
+	  const std::vector<int>& getForbiddenSessionsIds() const
+	  {
+	       return forbiddenSessionsIds;
+	  }
 };
 
 struct Paper
@@ -49,6 +60,11 @@ struct Paper
 	  {
 	       nbThemes++;
 	       themesIds.push_back(themeId);
+	  }
+
+	  const std::vector<int>& getAuthorsIds() const
+	  {
+	       return authorsIds;
 	  }
 };
 
