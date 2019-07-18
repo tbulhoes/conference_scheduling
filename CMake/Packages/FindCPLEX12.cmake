@@ -40,11 +40,11 @@ if(NOT "${CPLEX_LIBRARY}" STREQUAL "CPLEX_LIBRARY-NOTFOUND")
 
      find_library(LIBILO
 	   ilocplex
-           PATHS "/opt/ibm/ILOG/CPLEX_Studio128/cplex/lib/x86-64_linux/static_pic/"
+           PATHS "/opt/ibm/ILOG/CPLEX_Studio129/cplex/lib/x86-64_linux/static_pic/"
 	   PATHS "/opt/ilog/cplex/lib/x86-64_sles10_4.1/static_pic/")
       find_library(LIBCONCERT
 	   concert
-           PATHS "/opt/ibm/ILOG/CPLEX_Studio128/concert/lib/x86-64_linux/static_pic/"
+           PATHS "/opt/ibm/ILOG/CPLEX_Studio129/concert/lib/x86-64_linux/static_pic/"
 	   PATHS "/opt/ilog/cplex/lib/x86-64_sles10_4.1/static_pic/")
       find_library(LIBCLIQUESEP
 	   CliqueSep
@@ -72,11 +72,11 @@ if(NOT "${CPLEX_INCLUDE_DIR}" STREQUAL "CPLEX_INCLUDE_DIR-NOTFOUND")
 
   find_path(MY_CPLEX_INCLUDE_DIR
     ilcplex/cplex.h
-    PATHS "/opt/ibm/ILOG/CPLEX_Studio128/cplex/include"
+    PATHS "/opt/ibm/ILOG/CPLEX_Studio129/cplex/include"
     PATHS "/opt/ilog/cplex/include")
   find_path(MY_CONCERT_INCLUDE_DIR
     ilconcert/iloenv.h
-    PATHS "/opt/ibm/ILOG/CPLEX_Studio128/concert/include"
+    PATHS "/opt/ibm/ILOG/CPLEX_Studio129/concert/include"
     PATHS "/opt/ilog/concert/include")
   
   append_solver_include_dirs(${MY_CPLEX_INCLUDE_DIR})
