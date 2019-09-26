@@ -3,6 +3,8 @@ import sys
 import os.path
 import math
 
+def getGap(lb, ub):
+   return 100*(ub-lb)/lb
 
 def getNbMachines(inst):
    f = file(inst, "r")
@@ -97,19 +99,19 @@ def getRootTime(log):
 
    return None  
 
-def getNbCuts(inst):
+def getNbLazyCuts(inst, rootOnly):
    f = file(inst , "r")
+   nbCuts = 0 
    while True:
       l = f.readline()
-      if l == "":
+      if l == "": 
          break
-      if l.find("bcCountCutInMaster") != -1:
-         f.close()
-         return int(l.split(" ")[1])
-
-   print "ERROR: bcCountCutInMaster NOT FOUND FOR INST:", inst
+      if rootOnly and l.find("SB phase") != -1: 
+         break
+      if l.find("lazy cut added") != -1: 
+         nbCuts += 1
    f.close()
-   return None  
+   return nbCuts
 
 def instanceFinished(inst):
    f = file(inst , "r")
@@ -211,30 +213,25 @@ def getTime(inst):
    return time
 
 def getHeurUb(inst):
+   f = file(inst , "r")
+   ub = 0
 
-   #conecta-se ao banco sqlite3 e pega o cursor
-   try:
-      db=sqlite3.connect("data/bds/ubs.db")
-      cursor=db.cursor()
-   except:
-      print "unable to connect to sqlite database"
+   while True:
+      l = f.readline()
+      if l.find("cutOffValue") != -1:
+        ub = float(l.split(" = ")[-1]) - 1
+	break
 
-   sql = "select ub from ubsAK where inst=?"
-   cursor.execute(sql, (inst.replace(".dat", ""),))
-   ub = int(cursor.fetchone()[0])
-   cursor.close()
-   db.close()
-
+   f.close()
    return ub
- 
+
 def main():
 
    if len(sys.argv) != 3:
       print "python insertData.py logsDir instDir"
       sys.exit()
 
-   global logsDir
-   global instsDir
+  
 
    logsDir = sys.argv[1]
    instsDir = sys.argv[2]
@@ -246,23 +243,17 @@ def main():
    instances = os.listdir(instsDir)
    instances.sort()
    logs = os.listdir(logsDir)
-   avgGap1 = 0.0
-   avgGap2=0.0
-   avgTime = 0
-   avgRootTime = 0
-   nbInst = 0
    for inst in instances:
-         if inst.find("25.dat") != -1:
-	    continue
-         for log in logs:
-	    if log.find(inst.replace(".dat","")) != -1:
-               if instanceFinished(log):
-                  try:
-                     print inst.replace(".dat",""),getT(log),getFirstLPVal(log),getRootLB(log),getUbAtRoot(log),getRootTime(log),getNbRank1Cuts(log,1,True), getNbRank1Cuts(log,1,False),getNbRank1Cuts(log,3,True),getNbRank1Cuts(log,3,False),getLb(log),getUb(log),getNbNodes(log),getTime(log), getHeurUb(inst)
-
-                  except Exception as e:
-                     print e
-               else:
-	          print inst
+      if inst.find("results") != -1:
+         continue
+      log = logsDir + inst.replace(".txt", "")
+      if instanceFinished(log):
+         try:
+            rootLB, rootUB, LB, UB = -getUbAtRoot(log), -getRootLB(log), -getUb(log), -getLb(log)
+            print inst.replace(".txt",""),rootLB,rootUB,getGap(rootLB,rootUB),getRootTime(log),getNbLazyCuts(log,True),LB,UB,getGap(LB,UB),getTime(log),getNbNodes(log),getNbLazyCuts(log,False),-getHeurUb(log)        
+	 except Exception as e:
+            print e
+      else:
+         print inst
 if __name__ == "__main__":
    main()

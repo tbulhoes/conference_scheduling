@@ -5,7 +5,7 @@ import sqlite3
 
 def getUb(inst):
 
-   f = file("entrada/ebl/heuristic_results/" + inst + ".res.txt", "r")
+   f = file("entrada/lars/heuristic_results/" + inst + ".res.txt", "r")
    val = 0
    while True:
       l = f.readline()
@@ -26,11 +26,20 @@ def main():
    for inst in instances:
       if inst.find("results") != -1:
          continue
-   
       inst_name = inst.split(".")[0]
+      if os.path.exists("logsscreenlars/" + inst_name):
+         print("skipping " + inst_name)
+         continue
+   
       ub = getUb(inst)
 
-      call("./build/bin/conference_scheduling -b config/GenericBc.cfg -a config/GenericApp.cfg -i " + dir_in+inst + " --cutOffValue " + str(ub) + " > logsscreenebl/" + inst_name + " 2> logsscreenebl/logsaida2_" + inst_name, shell=True)
+#      print("./conference_scheduling -b config/GenericBc.cfg -a config/GenericApp.cfg -i " + dir_in+inst + " --cutOffValue " + str(ub) + " > logsscreenlars/" + inst_name + " 2> logsscreenlars/logsaida2_" + inst_name)
+#     continue
+      
+      ret_code = call("./conference_scheduling -b config/GenericBc.cfg -a config/GenericApp.cfg -i " + dir_in+inst + " --cutOffValue " + str(ub) + " > logsscreenlars/" + inst_name + " 2> logsscreenlars/logsaida2_" + inst_name, shell=True)
+      f = file("ret_codes", "a")
+      f.write(inst_name + " " + str(ret_code) + "\n")
+      f.close()
 
 if __name__=="__main__":
    main()
