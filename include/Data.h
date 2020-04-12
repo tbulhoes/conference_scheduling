@@ -166,7 +166,7 @@ struct CheckerData
 		    maxSize = std::max(maxSize, sessions[sessionsIds[i]].getSize());
 	  }
 
-	  return 2*maxSize;
+	  return 200*maxSize;
      }
      
      int getThemeLimitPerDay(const Theme& theme) const

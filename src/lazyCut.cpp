@@ -194,7 +194,9 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
 		    if(clusterICanBeAtJ)
 			 sumX += x[i][j];
 		    else
+                    {
 			 model.add(x[i][j] == 0);
+                    }
 	       }
 	  }
 
@@ -257,7 +259,7 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
      }
 
      //for each theme, there is an upper bound on the number of parallel papers 
-     for(int themeId = 0; themeId < checkerData.themes.size(); themeId++)
+     /*for(int themeId = 0; themeId < checkerData.themes.size(); themeId++)
      {
 	  const Theme& theme = checkerData.themes[themeId];
 	  const std::vector<int>& papersIds = theme.getPapersIds();
@@ -313,7 +315,7 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
 		    model.add(rng);
 	       }
 	  }
-     }
+     }*/
 
      //for each theme, there is an upper bound on the number of papers in a given day
      for(int themeId = 0; themeId < checkerData.themes.size(); themeId++)
@@ -416,6 +418,5 @@ bool LazyCutSeparationRoutine::feasibleClustering(std::vector<std::vector<int> >
      }
 
      env.end();
-
      return feasible;
 }

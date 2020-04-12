@@ -258,6 +258,7 @@ SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
    KS.setParam(IloCplex::Threads, 1);
    //     KS.setParam(IloCplex::EpGap, 0.0001);
    KS.setParam(IloCplex::EpGap, 0.0);
+   KS.setParam(IloCplex::TiLim, 3*60*60);
    KS.setOut(env.getNullStream());
    KS.setWarning(env.getNullStream());
    const IloBoolVarArray& x_ref = x;
