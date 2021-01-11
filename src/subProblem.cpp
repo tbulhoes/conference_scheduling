@@ -258,7 +258,7 @@ SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
    KS.setParam(IloCplex::Threads, 1);
    //     KS.setParam(IloCplex::EpGap, 0.0001);
    KS.setParam(IloCplex::EpGap, 0.0);
-   KS.setParam(IloCplex::TiLim, 3*60*60);
+   KS.setParam(IloCplex::TiLim, 11*60*60);
    KS.setOut(env.getNullStream());
    KS.setWarning(env.getNullStream());
    const IloBoolVarArray& x_ref = x;
@@ -284,6 +284,7 @@ SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
    if(spData.phase == 0 && KS.getCplexStatus() != IloCplex::Optimal && KS.getCplexStatus() != IloCplex::OptimalTol)
    {
 	std::cerr << "column found by CPLEX is not optimal and phase=0!";
+	std::cerr << KS.getCplexStatus() << std::endl;
 	exit(EXIT_FAILURE);
    }
 
