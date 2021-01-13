@@ -102,6 +102,7 @@ class SpMipSolver
 
 	  SpSol* solve_nonlinear(SpSol* incumbent);
 	  SpSol* solve_linear(SpSol* incumbent);
+	  SpSol* solve_linear_edgevars(SpSol* incumbent);
 };
 
 class SpHeuristicSolver 

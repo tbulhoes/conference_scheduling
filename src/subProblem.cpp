@@ -23,7 +23,10 @@ bool SpOracle::operator()(BcFormulation spPtr,
      else if(spData.maxClusterSize <= 4)
      {
 	  SpEnumSolver enumSolver(spData);
+	  //clock_t t_ini = clock();
 	  spSol = enumSolver.solve();
+	  //clock_t t_end = clock();
+	  //std::cout << "time enum: " << " " << (double)(t_end - t_ini)/CLOCKS_PER_SEC << std::endl;
      }
      else
      {
@@ -34,15 +37,6 @@ bool SpOracle::operator()(BcFormulation spPtr,
 	  spSol = mipSolver.solve_linear(heurSpSol);
 	  delete heurSpSol;
      }
-
-  //   clock_t t_end = clock();
-   //  std::cout << "time " << mip << " " << (double)(t_end - t_ini)/CLOCKS_PER_SEC << std::endl;
-
-//     std::cout << "heur ";
-  //   heurSol->print();
-
-    // std::cout << "exact ";
-     //spSol.print();
 
      BcVarArray xVar(spPtr, "X");
      BcVarArray yVar(spPtr, "Y");
@@ -126,7 +120,7 @@ SpSol* SpMipSolver::solve_nonlinear(SpSol* incumbent)
 	  KS.addMIPStart(vars, values);
      }
      ////////////////////////////////////////////
-
+     //KS.exportModel("nonlinear.lp");
      KS.setParam(IloCplex::Threads, 1);
 //     KS.setParam(IloCplex::EpGap, 0.000001);
      KS.setParam(IloCplex::EpGap, 0.0);
@@ -158,9 +152,10 @@ SpSol* SpMipSolver::solve_nonlinear(SpSol* incumbent)
 	  exit(EXIT_FAILURE);
      }
 
-     std::cout << "time nonlin:" << KS.getTime() << std::endl;
      SpSol* spSol = incumbentCbk->getSpSol();
      delete incumbentCbk;
+
+     //std::cout << "time nonlin:" << KS.getTime() << " val:" << spSol->getCost() << " status:" << KS.getCplexStatus() << std::endl;
      env.end();
 
      return spSol;
@@ -254,7 +249,7 @@ SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
 	KS.addMIPStart(vars, values);
    }
    ////////////////////////////////////////////
-
+   //KS.exportModel("adopted_linear_model.lp");
    KS.setParam(IloCplex::Threads, 1);
    //     KS.setParam(IloCplex::EpGap, 0.0001);
    KS.setParam(IloCplex::EpGap, 0.0);
@@ -291,11 +286,126 @@ SpSol* SpMipSolver::solve_linear(SpSol* incumbent)
    //  std::cout << "time lin:" << KS.getTime() << std::endl;
    SpSol* spSol = incumbentCbk->getSpSol();
    delete incumbentCbk;
+   //std::cout << "time lin1:" << KS.getTime() << " val:" << spSol->getCost() << " status:" << KS.getCplexStatus() << std::endl;
    env.end();
 
    return spSol;
 }
 
+SpSol* SpMipSolver::solve_linear_edgevars(SpSol* incumbent)
+{
+   int knap_cpt = spData.maxClusterSize;
+
+   IloEnv env;
+   IloModel model(env);
+
+   IloBoolVarArray x(env, spData.getN());
+   for(int i = 0; i < spData.getN(); i++)
+   {
+      char var[100];
+      sprintf(var, "X(%d)", i);
+      x[i].setName(var);
+      model.add(x[i]);
+   }
+
+   IloArray< IloBoolVarArray> z(env, spData.getN());
+   for(int i = 0; i < spData.getN(); i++)
+   {
+      z[i] = IloBoolVarArray(env, spData.getN());
+      for(int j = i+1; j < spData.getN(); j++)
+      {
+	  char var[100];
+	  sprintf(var, "Z(%d,%d)", i, j);
+	  z[i][j].setName(var);
+	  model.add(z[i][j]);
+      }
+   }
+   
+   //fo
+   IloExpr fo(env);
+   for(int i = 0; i < spData.getN(); i++)
+   {
+      fo += spData.vertexRedCosts[i]*x[i];
+      for(int j = i+1; j < spData.getN(); j++)
+	  fo += spData.edgeRedCosts[i][j]*z[i][j];
+   }
+   model.add(IloMinimize(env, fo));
+
+   //restricoes
+   model.add(spData.minClusterSize <= IloSum(x) <= knap_cpt);
+
+   for(int i = 0; i < spData.getN(); i++)
+   {
+      for(int j = i+1; j < spData.getN(); j++)
+      {
+         model.add(z[i][j] <= x[i]);
+         model.add(z[i][j] <= x[j]);
+         model.add(z[i][j] >= x[i] + x[j] - 1);
+      }
+   }
+
+   IloCplex KS(model);
+   KS.exportModel("alternative_linear_model.lp");
+   ////////////////////////////////////////////
+   //incumbent
+   if(incumbent)
+   {
+	IloNumVarArray vars(env);
+	IloNumArray values(env);
+
+	for(int i = 0; i < spData.getN(); i++)
+	{
+	     vars.add(x[i]);
+	     if(incumbent->hasVertex(i))
+		  values.add(1);
+	     else
+		  values.add(0);
+	}
+
+	KS.addMIPStart(vars, values);
+   }
+   ////////////////////////////////////////////
+
+   KS.setParam(IloCplex::Threads, 1);
+   //     KS.setParam(IloCplex::EpGap, 0.0001);
+   KS.setParam(IloCplex::EpGap, 0.0);
+   KS.setParam(IloCplex::TiLim, 11*60*60);
+   KS.setOut(env.getNullStream());
+   KS.setWarning(env.getNullStream());
+   const IloBoolVarArray& x_ref = x;
+   MyIncumbentCallback* incumbentCbk = new (env) MyIncumbentCallback(env, x_ref, spData);
+   KS.use(incumbentCbk);
+
+   try
+   {
+	KS.solve();
+   }
+   catch(IloException& e)
+   {
+	std::cerr << "Exception raised by cplex:" << e;
+	exit(EXIT_FAILURE);
+   }
+
+   if(not incumbentCbk->hasFoundColumn())
+   {
+	std::cerr << "no column was found by CPLEX!";
+	exit(EXIT_FAILURE);
+   }
+
+   if(spData.phase == 0 && KS.getCplexStatus() != IloCplex::Optimal && KS.getCplexStatus() != IloCplex::OptimalTol)
+   {
+	std::cerr << "column found by CPLEX is not optimal and phase=0!";
+	std::cerr << KS.getCplexStatus() << std::endl;
+	exit(EXIT_FAILURE);
+   }
+
+   SpSol* spSol = incumbentCbk->getSpSol();
+   delete incumbentCbk;
+   //std::cout << "time lin2:" << KS.getTime() << " val:" << spSol->getCost() << " status:" << KS.getCplexStatus() << std::endl;
+   env.end();
+
+   return spSol;
+}
 
 SpSol* SpHeuristicSolver::ch1(const int initialVertex)
 {
