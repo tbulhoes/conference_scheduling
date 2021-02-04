@@ -1,0 +1,8 @@
+logs/lars_one_author.zip filter=lfs diff=lfs merge=lfs -text
+logs/lars_one_topic.zip filter=lfs diff=lfs merge=lfs -text
+logs/lars.zip filter=lfs diff=lfs merge=lfs -text
+logs/ebl_modified.zip filter=lfs diff=lfs merge=lfs -text
+logs/ebl_one_author.zip filter=lfs diff=lfs merge=lfs -text
+logs/ebl_one_topic.zip filter=lfs diff=lfs merge=lfs -text
+logs/ebl.zip filter=lfs diff=lfs merge=lfs -text
+logs/lars_modified.zip filter=lfs diff=lfs merge=lfs -text
