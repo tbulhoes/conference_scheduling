@@ -1,0 +1,31 @@
+n #number of papers
+benefit matrix # nxn symmetric matrix
+|K| #number of cluster types
+m_1 |S_1| M_1 #min size, number of clusters, and max size for cluster type 1
+m_2 |S_2| M_2 #min size, number of clusters, and max size for cluster type 2
+.
+.
+.
+|D| #number of days
+number_of_time_slots_of_day_1 number_of_sessions_of_day_1 
+time_slot_1_1 size_1_1 #time and size of the first session of day 1
+time_slot_2_1 size_2_1 #time and size of the second session of day 1
+.
+.
+.
+(same information for the other days)
+.
+.
+.
+n |T| #number of papers, number of topics
+|T_1| t_1_1 t_2_1 ... #number of topics of paper 1 followed by the topics themselves
+|T_2| t_1_2 t_2_2 ... #number of topics of paper 2 followed by the topics themselves
+.
+.
+.
+n |A| #number of papers, number of authors
+|A_1| a_1_1 a_2_1 ... #number of authors of paper 1 followed by the authors themselves
+|A_2| a_1_2 a_2_2 ... #number of authors of paper 2 followed by the authors themselves
+.
+.
+.
